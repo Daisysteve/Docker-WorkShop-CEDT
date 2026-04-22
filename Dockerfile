@@ -1,6 +1,6 @@
 # ── Stage 1: Builder ──────────────────────────────────────────
 # TODO(step-4a): ตั้งชื่อ stage แรกว่า "builder" บน node:20.11-slim
-FROM node:20.11-slim AS builder
+FROM node:20-slim AS builder
 
 # TODO(step-4b): กำหนด working directory
 WORKDIR /app
@@ -13,7 +13,7 @@ RUN npm ci --omit=dev
 
 # ── Stage 2: Runtime ──────────────────────────────────────────
 # TODO(step-4e): stage สองใช้ base image เดิม แต่ไม่มีชื่อ stage
-FROM node:20.11-slim
+FROM node:20-slim
 
 WORKDIR /app
 
