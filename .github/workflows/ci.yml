@@ -37,7 +37,7 @@ jobs:
           severity: CRITICAL
           exit-code: '1'
 
-      # TODO(step-6e): Push ทั้ง 2 tags ขึ้น Docker Hub
+      # TODO(step-6e): Push ทั้ง 2 tags ขึ้น Docker Hu
       - name: Push image to Docker Hub
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/workshop-app:latest
