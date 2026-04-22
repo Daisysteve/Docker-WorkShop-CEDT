@@ -1,42 +1,35 @@
-# syntax=docker/dockerfile:1.7
+# ── Stage 1: Builder ──────────────────────────────────────────
+# TODO(step-4a): ตั้งชื่อ stage แรกว่า "builder" บน node:20.11-slim
+FROM node:20.11-slim AS builder
 
-# =============================================================================
-# Builder stage — installs production dependencies only, on a fresh Node base.
-# =============================================================================
+# TODO(step-4b): กำหนด working directory
+WORKDIR /app
 
-# TODO(step-4a): set the builder base image as node:20.11-slim and name the stage "builder".
-FROM ??? AS ???
-#   Do NOT use `node:latest` — we want reproducible builds across the cohort.
+# TODO(step-4c): Copy เฉพาะ package files ก่อน (เพื่อ cache layer)
+COPY app/package*.json ./
+
+# TODO(step-4d): ติดตั้ง dependencies แบบ production only
+RUN npm ci --omit=dev
+
+# ── Stage 2: Runtime ──────────────────────────────────────────
+# TODO(step-4e): stage สองใช้ base image เดิม แต่ไม่มีชื่อ stage
+FROM node:20.11-slim
 
 WORKDIR /app
 
-# TODO(step-4b): copy package.json and package-lock.json, then install deps.
-COPY ??? ???
-RUN ??? ??? --omit=dev
+# Copy node_modules จาก builder stage
+COPY --from=builder /app/node_modules ./node_modules
 
-# TODO(step-4c): copy the rest of the app source into /app.
-COPY ??? ???
+# TODO(step-4f): Copy โค้ด app
+COPY app/ .
 
-# =============================================================================
-# Runtime stage — slim final image. Nothing from builder's caches leaks in.
-# =============================================================================
-
-# TODO(step-4d): set the runtime base image (same tag as step-4a for consistency).
-FROM ???
-
-WORKDIR /app
-
-# TODO(step-4e): copy the fully-installed app from the builder stage.
-COPY --from=??? ??? ???
-
-ENV NODE_ENV=production
+# Expose port
 EXPOSE 3000
 
-# TODO(step-4f): add a HEALTHCHECK that probes http://localhost:3000/health.
-#   IMPORTANT: `node:20.11-slim` does NOT ship with curl or wget.
-#   Use Node's built-in http module instead:
-??? --interval=10s --timeout=3s --start-period=5s --retries=5 \
-CMD node -e "require('http').get('http://localhost:3000/health', r => process.exit(r.statusCode===200?0:1)).on('error', () => process.exit(1))"
+# TODO(step-4g): HEALTHCHECK ด้วย Node.js one-liner
+# (ใช้ Node เพราะ slim image ไม่มี curl/wget)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', r => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
-# TODO(step-4g): declare the container start command.
-CMD ["???", "???"]
+# Start app
+CMD ["node", "src/index.js"]
